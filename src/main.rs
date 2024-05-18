@@ -61,15 +61,14 @@ fn parse_input(input: &str) -> Result<Point, UserPointInputError> {
 
 fn get_next_point() -> Result<Point, UserPointInputError> {
     let input = get_user_input()?;
-    let point = parse_input(&input)?;
-    Ok(point)
+    parse_input(&input)
 }
 fn main() {
     // ユーザ入力を取る
     let next_point = get_next_point();
 
     match next_point {
-        Ok(ref point) => println!("{} {}", point.x, point.y),
+        Ok(point) => println!("{} {}", point.x, point.y),
         Err(e) => match e {
             UserPointInputError::Inquire(e) => println!("@@@ Inquier, {}", e),
             UserPointInputError::Parse(e) => println!("@@@ Parse, {}", e),
