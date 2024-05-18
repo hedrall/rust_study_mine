@@ -1,5 +1,5 @@
 mod input;
-use input::error::UserPointInputError;
+use input::error::UserPointInputError as InputError;
 mod model;
 
 fn main() {
@@ -9,9 +9,9 @@ fn main() {
     match next_point {
         Ok(point) => println!("{} {}", point.x, point.y),
         Err(e) => match e {
-            UserPointInputError::Inquire(e) => println!("@@@ Inquier, {}", e),
-            UserPointInputError::Parse(e) => println!("@@@ Parse, {}", e),
-            UserPointInputError::InvalidValueCount => println!("@@@ Invalid Value Count, {}", e),
+            InputError::Inquire(e) => println!("@@@ Inquier, {}", e),
+            InputError::Parse(e) => println!("@@@ Parse, {}", e),
+            InputError::InvalidValueCount => println!("@@@ Invalid Value Count, {}", e),
         },
     }
 }
