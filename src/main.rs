@@ -13,6 +13,8 @@ struct Point {
 enum UserPointInputError {
     Inquire(InquireError),
     Parse(ParseIntError),
+    // x, yとちょうど2つの値が指定されていない
+    InvalidValueCount,
 }
 
 impl fmt::Display for UserPointInputError {
@@ -20,6 +22,7 @@ impl fmt::Display for UserPointInputError {
         match self {
             UserPointInputError::Inquire(e) => write!(f, "IO Error: {}", e),
             UserPointInputError::Parse(e) => write!(f, "Parse Error {}", e),
+            UserPointInputError::InvalidValueCount => write!(f, "Parse Error 入力する数値はx, yの2値です。"),
         }
     }
 }
@@ -40,15 +43,17 @@ impl From<ParseIntError> for UserPointInputError {
 
 fn get_user_input() -> Result<String, UserPointInputError> {
     let input = Text::new("座標を入力してください")
-        .with_help_message("ex) 7, 2")
+        .with_help_message("ex) \"7 2\"")
         .with_validator(required!("必須です。"))
-        .prompt();
-    let input = input.unwrap();
+        .prompt()?;
     Ok(input)
 }
 
 fn parse_input(input: &str) -> Result<Point, UserPointInputError> {
     let point: Vec<&str> = input.split_whitespace().collect();
+    if point.len() != 2 {
+        return Err(UserPointInputError::InvalidValueCount);
+    }
     let x = point[0].parse::<u32>()?;
     let y = point[1].parse::<u32>()?;
     Ok(Point { x, y })
@@ -57,7 +62,7 @@ fn parse_input(input: &str) -> Result<Point, UserPointInputError> {
 fn get_next_point() -> Result<Point, UserPointInputError> {
     let input = get_user_input()?;
     let point = parse_input(&input)?;
-    Result::Ok(point)
+    Ok(point)
 }
 fn main() {
     // ユーザ入力を取る
@@ -68,6 +73,7 @@ fn main() {
         Err(e) => match e {
             UserPointInputError::Inquire(e) => println!("@@@ Inquier, {}", e),
             UserPointInputError::Parse(e) => println!("@@@ Parse, {}", e),
+            UserPointInputError::InvalidValueCount => println!("@@@ Invalid Value Count, {}", e),
         },
     }
 }
