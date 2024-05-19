@@ -1,3 +1,4 @@
+use crate::input::error::UserPointInputError;
 use crate::model::point::Point;
 use crate::setting::{MINE_COUNT, SIZE};
 use rand::Rng;
@@ -28,14 +29,16 @@ impl Cell {
         self.is_mine = true;
     }
     fn open(&mut self) -> OpenCellResult {
-        self.is_open = true;
+        let res: OpenCellResult;
         match self.is_mine {
-            true => OpenCellResult::Mine,
+            true => res = OpenCellResult::Mine,
             false => match self.is_open {
-                true => OpenCellResult::AlreadyOpened,
-                false => OpenCellResult::OK,
+                true => res = OpenCellResult::AlreadyOpened,
+                false => res = OpenCellResult::OK,
             },
         }
+        self.is_open = true;
+        res
     }
 }
 
