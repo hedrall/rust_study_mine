@@ -2,7 +2,9 @@ mod input;
 mod setting;
 use input::error::UserPointInputError as InputError;
 mod model;
-use model::{board::Board, point::Point};
+use crate::model::board;
+use model::board::Board;
+use rand::prelude::*;
 
 fn main() {
     let mut board = Board::new();
@@ -20,7 +22,15 @@ fn main() {
         match next_point {
             Ok(point) => {
                 println!("{} {}", point.x, point.y);
-                board.open_cell(&point);
+                let res = board.open_cell(&point);
+                match res {
+                    board::OpenCellResult::OK => println!("OK !!!"),
+                    board::OpenCellResult::AlreadyOpened => println!("すでに開いています。"),
+                    board::OpenCellResult::Mine => {
+                        board.print();
+                        panic!("❌ Boooom !!!!!!!");
+                    }
+                }
             }
             Err(e) => match e {
                 InputError::Inquire(e) => {
