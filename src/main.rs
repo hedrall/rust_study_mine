@@ -1,6 +1,8 @@
 mod input;
+mod setting;
 use input::error::UserPointInputError as InputError;
 mod model;
+use model::{board::Board, point::Point};
 
 fn main() {
     // ユーザ入力を取る
@@ -14,4 +16,7 @@ fn main() {
             InputError::InvalidValueCount => println!("@@@ Invalid Value Count, {}", e),
         },
     }
+
+    let board = Board::new();
+    board.print();
 }

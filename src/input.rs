@@ -21,7 +21,7 @@ fn parse_input(input: &str) -> Result<Point, UserPointInputError> {
     if point.len() != 2 {
         return Err(UserPointInputError::InvalidValueCount);
     }
-    let x = point[0].parse::<u32>()?;
-    let y = point[1].parse::<u32>()?;
+    let x = point[0].parse::<usize>()?;
+    let y = point[1].parse::<usize>()?;
     Ok(Point { x, y })
 }
