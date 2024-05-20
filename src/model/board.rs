@@ -245,7 +245,7 @@ impl Board {
         count
     }
     fn check_is_win(&self) -> bool {
-        self.not_open_cell_count() == SIZE
+        self.not_open_cell_count() == MINE_COUNT
     }
     pub fn show_stats(&self) {
         let to_open_cell_count = self.not_open_cell_count() - MINE_COUNT;
