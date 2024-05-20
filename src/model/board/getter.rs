@@ -1,5 +1,18 @@
 use super::{Board, Cell, Point, MINE_COUNT, SIZE};
 
+// 二次元vecのBoard.cellsを一次元のiterに変換する
+fn cells_iter(board: &Board) -> impl Iterator<Item = &Cell> {
+    board.cells.iter().flat_map(|cell| cell)
+}
+
+// 条件に一致するCellの総数をカウントする
+fn count_cell<F>(board: &Board, condition_fn: F) -> usize
+where
+    F: Fn(&&Cell) -> bool,
+{
+    cells_iter(board).filter(condition_fn).count()
+}
+
 impl Board {
     pub fn in_board(point: &Point) -> bool {
         let board_range = 1..=SIZE;
@@ -7,17 +20,12 @@ impl Board {
     }
 
     pub fn get_neighbor_cells(&mut self, point: &Point) -> Vec<Point> {
-        let mut neighbors: Vec<Point> = vec![];
-
-        for x in (point.x - 1)..=(point.x + 1) {
-            for y in (point.y - 1)..=(point.y + 1) {
-                let p = Point { x, y };
-                if Board::in_board(&p) {
-                    neighbors.push(p);
-                }
-            }
-        }
-        neighbors
+        let x_range = (point.x - 1)..=(point.x + 1);
+        let y_range = || (point.y - 1)..=(point.y + 1);
+        x_range
+            .flat_map(|x| y_range().map(move |y| Point { x, y }))
+            .filter(Board::in_board)
+            .collect()
     }
 
     pub fn get_cell(&mut self, point: &Point) -> &mut Cell {
@@ -25,27 +33,11 @@ impl Board {
     }
 
     pub(super) fn not_open_cell_count(&self) -> usize {
-        let mut count: usize = 0;
-        for row in &self.cells {
-            for cell in row {
-                if !cell.is_open {
-                    count = count + 1;
-                }
-            }
-        }
-        count
+        count_cell(self, |cell| !cell.is_open)
     }
 
     pub(super) fn flaged_cell_count(&self) -> usize {
-        let mut count: usize = 0;
-        for row in &self.cells {
-            for cell in row {
-                if cell.is_flag {
-                    count = count + 1;
-                }
-            }
-        }
-        count
+        count_cell(self, |cell| cell.is_flag)
     }
 
     pub(super) fn check_is_win(&self) -> bool {
