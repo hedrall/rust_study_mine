@@ -90,6 +90,9 @@ impl Cell {
         res
     }
     fn flag(&mut self) -> FlagCellResult {
+        if self.is_open {
+            return FlagCellResult::CannnotFlagOnOpenedCell;
+        }
         match self.is_flag {
             false => {
                 self.is_flag = true;
@@ -112,11 +115,13 @@ pub enum OpenCellResult {
     OK,
     AlreadyOpened,
     CannotOpenBecauseFlaged,
+    Win,
     Mine,
 }
 pub enum FlagCellResult {
     Added,
     Removed,
+    CannnotFlagOnOpenedCell,
 }
 
 fn mine_positions() -> Vec<Point> {
@@ -215,11 +220,29 @@ impl Board {
         neighbors
     }
 
+    fn not_open_cell_count(&self) -> usize {
+        let mut count: usize = 0;
+        for row in &self.cells {
+            for cell in row {
+                if !cell.is_open {
+                    count = count + 1;
+                }
+            }
+        }
+        count
+    }
+    fn check_is_win(&self) -> bool {
+        self.not_open_cell_count() == SIZE
+    }
     pub fn open_cell(&mut self, point: &Point) -> OpenCellResult {
         let res = self.get_cell(point).open();
         match res {
             OpenCellResult::OK => {
                 self.open_neighbor_if_no_mines(point);
+                // 勝利判定をする
+                if self.check_is_win() {
+                    return OpenCellResult::Win;
+                }
                 res
             }
             _ => res,
