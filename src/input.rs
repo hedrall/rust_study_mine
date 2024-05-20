@@ -1,4 +1,5 @@
 pub mod error;
+pub mod env;
 use crate::model::point::Point;
 use error::UserPointInputError;
 use inquire::{required, Text};

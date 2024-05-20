@@ -1,128 +1,16 @@
+use crate::model::cell::{
+    types::{FlagCellResult, OpenCellResult},
+    Cell,
+    printer::*
+};
 use crate::model::point::Point;
 use crate::setting::{MINE_COUNT, SIZE};
 use colored::Colorize;
 use rand::Rng;
 
-const DEBUG_MODE_KEY: &str = "DEBUG_MODE";
-fn is_debug_mode() -> bool {
-    let debug_mode = std::env::var(DEBUG_MODE_KEY);
-    match debug_mode {
-        Ok(value) => value == "true",
-        Err(_) => false,
-    }
-}
-
-#[derive(Debug)]
-pub struct Cell {
-    pub is_open: bool,
-    pub is_mine: bool,
-    pub is_flag: bool,
-    pub neighbor_mine_count: u32,
-}
-
-impl Cell {
-    fn new() -> Cell {
-        Cell {
-            is_open: false,
-            is_mine: false,
-            is_flag: false,
-            neighbor_mine_count: 0,
-        }
-    }
-    fn _print_in_game(&self) {
-        if !self.is_open {
-            match self.is_flag {
-                false => return print!("{}", " ".on_white()),
-                true => return print!("{}", "f".black().on_white()),
-            };
-        }
-        if self.is_mine {
-            return print!("{}", "×".red());
-        }
-        let s: String = match self.neighbor_mine_count {
-            0 => String::from("□"),
-            _ => format!("{}", self.neighbor_mine_count),
-        };
-        print!("{}", s);
-    }
-
-    fn print_in_result(&self) {
-        match self.is_mine {
-            true => print!("{}", "×".red()),
-            false => {
-                let s: String = match self.neighbor_mine_count {
-                    0 => String::from("□"),
-                    _ => format!("{}", self.neighbor_mine_count),
-                };
-                let colored = match self.is_open {
-                    true => s.white(),
-                    false => s.on_blue().white(),
-                };
-                print!("{}", colored)
-            }
-        }
-    }
-    fn print(&self) {
-        match is_debug_mode() {
-            false => self._print_in_game(),
-            true => self.print_in_result(),
-        }
-    }
-    fn set_mine(&mut self) {
-        self.is_mine = true;
-    }
-    fn increment_neighbor_mine_count(&mut self) {
-        self.neighbor_mine_count = self.neighbor_mine_count + 1;
-    }
-    fn open(&mut self) -> OpenCellResult {
-        let res: OpenCellResult;
-        if self.is_flag {
-            return OpenCellResult::CannotOpenBecauseFlaged;
-        }
-        match self.is_mine {
-            true => res = OpenCellResult::Mine,
-            false => match self.is_open {
-                true => res = OpenCellResult::AlreadyOpened,
-                false => res = OpenCellResult::OK,
-            },
-        }
-        self.is_open = true;
-        res
-    }
-    fn flag(&mut self) -> FlagCellResult {
-        if self.is_open {
-            return FlagCellResult::CannnotFlagOnOpenedCell;
-        }
-        match self.is_flag {
-            false => {
-                self.is_flag = true;
-                FlagCellResult::Added
-            }
-            true => {
-                self.is_flag = false;
-                FlagCellResult::Removed
-            }
-        }
-    }
-}
-
 pub struct Board {
     // 10 x 10 マスで固定
     cells: Vec<Vec<Cell>>,
-}
-
-pub enum OpenCellResult {
-    OK,
-    AlreadyOpened,
-    CannotOpenBecauseFlaged,
-    Win,
-    Mine,
-}
-
-pub enum FlagCellResult {
-    Added,
-    Removed,
-    CannnotFlagOnOpenedCell,
 }
 
 fn mine_positions() -> Vec<Point> {

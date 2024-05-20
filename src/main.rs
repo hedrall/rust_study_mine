@@ -1,10 +1,11 @@
 mod input;
-mod setting;
-use input::UserAction;
-use setting::{MINE_COUNT, SIZE};
 mod model;
-use crate::model::board;
+mod setting;
+
+use cell::types::{FlagCellResult, OpenCellResult};
+use input::UserAction;
 use model::board::Board;
+use model::cell;
 use rand::prelude::*;
 
 fn main() {
@@ -25,16 +26,16 @@ fn main() {
                 println!("Open !!!, {} {}", point.x, point.y);
                 let res = board.open_cell(&point);
                 match res {
-                    board::OpenCellResult::OK => {}
-                    board::OpenCellResult::AlreadyOpened => println!("⚠️ すでに開いています。"),
-                    board::OpenCellResult::CannotOpenBecauseFlaged => {
+                    OpenCellResult::OK => {}
+                    OpenCellResult::AlreadyOpened => println!("⚠️ すでに開いています。"),
+                    OpenCellResult::CannotOpenBecauseFlaged => {
                         println!("⚠️ フラグがついているので開けません。")
                     }
-                    board::OpenCellResult::Win => {
+                    OpenCellResult::Win => {
                         board.print_with_result();
                         panic!("🎉 You Win !!!!!!!");
                     }
-                    board::OpenCellResult::Mine => {
+                    OpenCellResult::Mine => {
                         board.print_with_result();
                         panic!("❌ Boooom !!!!!!!");
                     }
@@ -44,9 +45,9 @@ fn main() {
                 println!("Flag !!!, {} {}", point.x, point.y);
                 let res = board.flag_cell(&point);
                 match res {
-                    board::FlagCellResult::Added => println!("フラグを追加しました。"),
-                    board::FlagCellResult::Removed => println!("フラグを削除しました。"),
-                    board::FlagCellResult::CannnotFlagOnOpenedCell => {
+                    FlagCellResult::Added => println!("フラグを追加しました。"),
+                    FlagCellResult::Removed => println!("フラグを削除しました。"),
+                    FlagCellResult::CannnotFlagOnOpenedCell => {
                         println!("開封済みのセルにフラグを置けません。")
                     }
                 }
