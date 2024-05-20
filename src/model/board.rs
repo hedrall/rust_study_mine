@@ -1,8 +1,3 @@
-use core::panic;
-use std::fmt::format;
-use std::isize::MIN;
-
-use super::point;
 use crate::model::point::Point;
 use crate::setting::{MINE_COUNT, SIZE};
 use colored::Colorize;
@@ -153,8 +148,15 @@ impl Board {
             print!(" ");
         }
     }
+
     pub fn print(&self) {
-        for row in &self.cells {
+        print!(" \t");
+        for index in 1..=SIZE {
+            print!("{} ", index);
+        }
+        println!("");
+        for (index, row) in self.cells.iter().enumerate() {
+            print!("{}\t", index + 1);
             Board::print_row(&row, false);
             println!("");
         }
