@@ -1,6 +1,6 @@
 mod input;
 mod setting;
-use input::error::UserPointInputError as InputError;
+use input::UserAction;
 mod model;
 use crate::model::board;
 use model::board::Board;
@@ -15,25 +15,34 @@ fn main() {
         board.print();
 
         // ユーザ入力を取る
-        let next_point = input::get_next_point();
-        
-        match next_point {
-            Ok(point) => {
-                println!("{} {}", point.x, point.y);
+        let action = input::get_user_action();
+
+        match action {
+            UserAction::OpenCell(point) => {
+                println!("Open !!!, {} {}", point.x, point.y);
                 let res = board.open_cell(&point);
                 match res {
                     board::OpenCellResult::OK => println!("OK !!!"),
                     board::OpenCellResult::AlreadyOpened => println!("⚠️ すでに開いています。"),
+                    board::OpenCellResult::CannotOpenBecauseFlaged => println!("⚠️ フラグがついているので開けません。"),
                     board::OpenCellResult::Mine => {
                         board.print_with_result();
                         panic!("❌ Boooom !!!!!!!");
                     }
                 }
             }
-            Err(e) => match e {
-                InputError::Inquire(e) => panic!("@@@ Inquier, {}", e),
-                InputError::Parse(e) => println!("@@@ Parse, {}", e),
-                InputError::InvalidValueCount => println!("@@@ Invalid Value Count, {}", e),
+            UserAction::FlagCell(point) => {
+                println!("Flag !!!, {} {}", point.x, point.y);
+                let res = board.flag_cell(&point);
+                match res {
+                    board::FlagCellResult::Added => println!("フラグを追加しました。"),
+                    board::FlagCellResult::Removed => println!("フラグさ削除しました。"),
+                }
+            }
+            UserAction::Error(e) => match e {
+                input::error::UserPointInputError::Inquire(e) => panic!("@@@ Inquier, {}", e),
+                input::error::UserPointInputError::Parse(e) => println!("@@@ Parse, {}", e),
+                input::error::UserPointInputError::InvalidValueCount => println!("@@@ Invalid Value Count, {}", e),
             },
         }
     }

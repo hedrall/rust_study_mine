@@ -16,6 +16,7 @@ fn is_debug_mode() -> bool {
 pub struct Cell {
     pub is_open: bool,
     pub is_mine: bool,
+    pub is_flag: bool,
     pub neighbor_mine_count: u32,
 }
 
@@ -24,23 +25,25 @@ impl Cell {
         Cell {
             is_open: false,
             is_mine: false,
+            is_flag: false,
             neighbor_mine_count: 0,
         }
     }
     fn _print_in_game(&self) {
-        match self.is_open {
-            false => print!("■"),
-            true => match self.is_mine {
-                true => print!("{}", "×".red()),
-                false => {
-                    let s: String = match self.neighbor_mine_count {
-                        0 => String::from("□"),
-                        _ => format!("{}", self.neighbor_mine_count),
-                    };
-                    print!("{}", s);
-                }
-            },
+        if !self.is_open {
+            match self.is_flag {
+                false => return print!("{}", " ".on_white()),
+                true => return print!("{}", "f".black().on_white()),
+            };
         }
+        if self.is_mine {
+            return print!("{}", "×".red());
+        }
+        let s: String = match self.neighbor_mine_count {
+            0 => String::from("□"),
+            _ => format!("{}", self.neighbor_mine_count),
+        };
+        print!("{}", s);
     }
 
     fn print_in_result(&self) {
@@ -73,6 +76,9 @@ impl Cell {
     }
     fn open(&mut self) -> OpenCellResult {
         let res: OpenCellResult;
+        if self.is_flag {
+            return OpenCellResult::CannotOpenBecauseFlaged;
+        }
         match self.is_mine {
             true => res = OpenCellResult::Mine,
             false => match self.is_open {
@@ -82,6 +88,18 @@ impl Cell {
         }
         self.is_open = true;
         res
+    }
+    fn flag(&mut self) -> FlagCellResult {
+        match self.is_flag {
+            false => {
+                self.is_flag = true;
+                FlagCellResult::Added
+            }
+            true => {
+                self.is_flag = false;
+                FlagCellResult::Removed
+            }
+        }
     }
 }
 
@@ -93,7 +111,12 @@ pub struct Board {
 pub enum OpenCellResult {
     OK,
     AlreadyOpened,
+    CannotOpenBecauseFlaged,
     Mine,
+}
+pub enum FlagCellResult {
+    Added,
+    Removed,
 }
 
 fn mine_positions() -> Vec<Point> {
@@ -198,9 +221,13 @@ impl Board {
             OpenCellResult::OK => {
                 self.open_neighbor_if_no_mines(point);
                 res
-            },
+            }
             _ => res,
         }
+    }
+
+    pub fn flag_cell(&mut self, point: &Point) -> FlagCellResult {
+        self.get_cell(point).flag()
     }
 
     pub fn open_neighbor_if_no_mines(&mut self, point: &Point) {
