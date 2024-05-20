@@ -56,7 +56,7 @@ impl Cell {
                 };
                 let colored = match self.is_open {
                     true => s.white(),
-                    false => s.on_white().black(),
+                    false => s.on_blue().white(),
                 };
                 print!("{}", colored)
             }
@@ -118,6 +118,7 @@ pub enum OpenCellResult {
     Win,
     Mine,
 }
+
 pub enum FlagCellResult {
     Added,
     Removed,
@@ -128,15 +129,16 @@ fn mine_positions() -> Vec<Point> {
     let mut rng = rand::thread_rng();
 
     // 長さがMINE_COUNTのpointの配列
-    let mut p: Vec<Point> = Vec::from([0; MINE_COUNT].map(|_| Point { x: 0, y: 0 }));
+    let mut p: Vec<Point> = vec![];
 
-    for index in 0..MINE_COUNT {
-        println!("index {}", index);
-        // 1 ~ 10 までの乱数を生成
-        p[index] = Point {
+    while p.len() < MINE_COUNT {
+        let new_p = Point {
             x: rng.gen_range(1..=SIZE),
             y: rng.gen_range(1..=SIZE),
         };
+        if !p.contains(&new_p) {
+            p.push(new_p);
+        }
     }
     p
 }
@@ -231,8 +233,27 @@ impl Board {
         }
         count
     }
+    fn flaged_cell_count(&self) -> usize {
+        let mut count: usize = 0;
+        for row in &self.cells {
+            for cell in row {
+                if cell.is_flag {
+                    count = count + 1;
+                }
+            }
+        }
+        count
+    }
     fn check_is_win(&self) -> bool {
         self.not_open_cell_count() == SIZE
+    }
+    pub fn show_stats(&self) {
+        let to_open_cell_count = self.not_open_cell_count() - MINE_COUNT;
+        let mines_not_flagged = MINE_COUNT - self.flaged_cell_count();
+        println!(
+            "あと{}マス, 💣残: {}",
+            to_open_cell_count, mines_not_flagged
+        );
     }
     pub fn open_cell(&mut self, point: &Point) -> OpenCellResult {
         let res = self.get_cell(point).open();
@@ -250,7 +271,8 @@ impl Board {
     }
 
     pub fn flag_cell(&mut self, point: &Point) -> FlagCellResult {
-        self.get_cell(point).flag()
+        let res = self.get_cell(point).flag();
+        res
     }
 
     pub fn open_neighbor_if_no_mines(&mut self, point: &Point) {

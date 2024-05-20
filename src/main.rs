@@ -1,6 +1,7 @@
 mod input;
 mod setting;
 use input::UserAction;
+use setting::{MINE_COUNT, SIZE};
 mod model;
 use crate::model::board;
 use model::board::Board;
@@ -13,6 +14,7 @@ fn main() {
         println!("");
         ターンカウント = ターンカウント + 1;
         println!("ターン: {}", ターンカウント);
+        board.show_stats();
         board.print();
 
         // ユーザ入力を取る
@@ -23,9 +25,11 @@ fn main() {
                 println!("Open !!!, {} {}", point.x, point.y);
                 let res = board.open_cell(&point);
                 match res {
-                    board::OpenCellResult::OK => println!("OK !!!"),
+                    board::OpenCellResult::OK => {}
                     board::OpenCellResult::AlreadyOpened => println!("⚠️ すでに開いています。"),
-                    board::OpenCellResult::CannotOpenBecauseFlaged => println!("⚠️ フラグがついているので開けません。"),
+                    board::OpenCellResult::CannotOpenBecauseFlaged => {
+                        println!("⚠️ フラグがついているので開けません。")
+                    }
                     board::OpenCellResult::Win => {
                         board.print_with_result();
                         panic!("🎉 You Win !!!!!!!");
@@ -42,13 +46,17 @@ fn main() {
                 match res {
                     board::FlagCellResult::Added => println!("フラグを追加しました。"),
                     board::FlagCellResult::Removed => println!("フラグを削除しました。"),
-                    board::FlagCellResult::CannnotFlagOnOpenedCell=> println!("開封済みのセルにフラグを置けません。"),
+                    board::FlagCellResult::CannnotFlagOnOpenedCell => {
+                        println!("開封済みのセルにフラグを置けません。")
+                    }
                 }
             }
             UserAction::Error(e) => match e {
                 input::error::UserPointInputError::Inquire(e) => panic!("@@@ Inquier, {}", e),
                 input::error::UserPointInputError::Parse(e) => println!("@@@ Parse, {}", e),
-                input::error::UserPointInputError::InvalidValueCount => println!("@@@ Invalid Value Count, {}", e),
+                input::error::UserPointInputError::InvalidValueCount => {
+                    println!("@@@ Invalid Value Count, {}", e)
+                }
             },
         }
     }
