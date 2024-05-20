@@ -1,4 +1,4 @@
-use super::{ Board, Point};
+use super::{Board, Point};
 
 impl Board {
     pub fn open_neighbor_if_no_mines(&mut self, point: &Point) {
@@ -7,21 +7,12 @@ impl Board {
             return;
         }
 
-        let neighbors = self.get_neighbor_cells(point);
-
         // 近隣を全て開く
-        for n in neighbors {
+        for n in self.get_neighbor_cells(point) {
             let cell = self.get_cell(&n);
-            match cell.is_open {
-                true => continue,
-                false => {
-                    cell.open();
-
-                    // 開いたcellのneighbor_mine_countが0の場合は再帰実行する
-                    if cell.neighbor_mine_count == 0 {
-                        self.open_neighbor_if_no_mines(&n);
-                    }
-                }
+            if !cell.is_open {
+                cell.open();
+                self.open_neighbor_if_no_mines(&n);
             }
         }
     }

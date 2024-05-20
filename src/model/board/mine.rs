@@ -12,6 +12,7 @@ pub(super) fn mine_positions() -> Vec<Point> {
             x: rng.gen_range(1..=SIZE),
             y: rng.gen_range(1..=SIZE),
         };
+        // 爆弾の位置が重複していなければvecに追加する
         if !p.contains(&new_p) {
             p.push(new_p);
         }

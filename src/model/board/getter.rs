@@ -32,15 +32,15 @@ impl Board {
         &mut self.cells[point.x - 1][point.y - 1]
     }
 
-    pub(super) fn not_open_cell_count(&self) -> usize {
+    pub(super) fn 未開封の_cell_の総数(&self) -> usize {
         count_cell(self, |cell| !cell.is_open)
     }
 
-    pub(super) fn flaged_cell_count(&self) -> usize {
+    pub(super) fn フラグを立てた_cell_の総数(&self) -> usize {
         count_cell(self, |cell| cell.is_flag)
     }
 
     pub(super) fn check_is_win(&self) -> bool {
-        self.not_open_cell_count() == MINE_COUNT
+        self.未開封の_cell_の総数() == MINE_COUNT
     }
 }

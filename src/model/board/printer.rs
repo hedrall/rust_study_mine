@@ -32,8 +32,8 @@ impl Board {
     }
 
     pub fn show_stats(&self) {
-        let to_open_cell_count = self.not_open_cell_count() - MINE_COUNT;
-        let mines_not_flagged = MINE_COUNT - self.flaged_cell_count();
+        let to_open_cell_count = self.未開封の_cell_の総数() - MINE_COUNT;
+        let mines_not_flagged = MINE_COUNT - self.フラグを立てた_cell_の総数();
         println!(
             "あと{}マス, 💣残: {}",
             to_open_cell_count, mines_not_flagged
