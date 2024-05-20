@@ -1,9 +1,11 @@
 use core::panic;
+use std::fmt::format;
 use std::isize::MIN;
 
 use super::point;
 use crate::model::point::Point;
 use crate::setting::{MINE_COUNT, SIZE};
+use colored::Colorize;
 use rand::Rng;
 
 const DEBUG_MODE_KEY: &str = "DEBUG_MODE";
@@ -30,23 +32,41 @@ impl Cell {
             neighbor_mine_count: 0,
         }
     }
+    fn _print_in_game(&self) {
+        match self.is_open {
+            false => print!("■"),
+            true => match self.is_mine {
+                true => print!("{}", "×".red()),
+                false => {
+                    let s: String = match self.neighbor_mine_count {
+                        0 => String::from("□"),
+                        _ => format!("{}", self.neighbor_mine_count),
+                    };
+                    print!("{}", s);
+                }
+            },
+        }
+    }
+    fn print_in_result(&self) {
+        match self.is_mine {
+            true => print!("{}", "×".red()),
+            false => {
+                let s: String = match self.neighbor_mine_count {
+                    0 => String::from("□"),
+                    _ => format!("{}", self.neighbor_mine_count),
+                };
+                let colored = match self.is_open {
+                    true => s.white(),
+                    false => s.on_white().black(),
+                };
+                print!("{}", colored)
+            }
+        }
+    }
     fn print(&self) {
         match is_debug_mode() {
-            true => {
-                match self.is_mine {
-                    true => print!("×"),
-                    false => print!("{}", self.neighbor_mine_count),
-                }
-            }
-            false => {
-                match self.is_open {
-                    false => print!("■"),
-                    true => match self.is_mine {
-                        true => print!("×"),
-                        false => print!("{}", self.neighbor_mine_count),
-                    },
-                }
-            }
+            false => self._print_in_game(),
+            true => self.print_in_result(),
         }
     }
     fn set_mine(&mut self) {
@@ -123,15 +143,25 @@ impl Board {
     fn new_row() -> Vec<Cell> {
         Vec::from([0; SIZE].map(|_| Cell::new()))
     }
-    fn print_row(row: &Vec<Cell>) {
+    fn print_row(row: &Vec<Cell>, with_result: bool) {
         for cell in row {
-            cell.print();
+            match with_result {
+                true => cell.print_in_result(),
+                false => cell.print(),
+            }
             print!(" ");
         }
     }
     pub fn print(&self) {
         for row in &self.cells {
-            Board::print_row(&row);
+            Board::print_row(&row, false);
+            println!("");
+        }
+    }
+
+    pub fn print_with_result(&self) {
+        for row in &self.cells {
+            Board::print_row(&row, true);
             println!("");
         }
     }

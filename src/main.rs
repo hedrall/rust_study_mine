@@ -25,7 +25,7 @@ fn main() {
                     board::OpenCellResult::OK => println!("OK !!!"),
                     board::OpenCellResult::AlreadyOpened => println!("⚠️ すでに開いています。"),
                     board::OpenCellResult::Mine => {
-                        board.print();
+                        board.print_with_result();
                         panic!("❌ Boooom !!!!!!!");
                     }
                 }
