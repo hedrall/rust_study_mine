@@ -1,4 +1,6 @@
-use crate::input::error::UserPointInputError;
+use core::panic;
+use std::isize::MIN;
+
 use crate::model::point::Point;
 use crate::setting::{MINE_COUNT, SIZE};
 use rand::Rng;
@@ -7,6 +9,7 @@ use rand::Rng;
 pub struct Cell {
     pub is_open: bool,
     pub is_mine: bool,
+    pub neighbor_mine_count: u32,
 }
 
 impl Cell {
@@ -14,6 +17,7 @@ impl Cell {
         Cell {
             is_open: false,
             is_mine: false,
+            neighbor_mine_count: 0,
         }
     }
     fn print(&self) {
@@ -72,14 +76,30 @@ fn mine_positions() -> Vec<Point> {
 fn set_mines(board: &mut Board) {
     let positions = mine_positions();
     println!("mine positions {:#?}", positions);
+    // ex)
+    //    point          (1, 5)
+    // => cell index     (0, 4)
+    // => neighbor cells x       x       x
+    //                   (0, 3), (0, 4), (0, 5)
+    //                   (1, 3), (1, 4), (1, 5)
     for p in positions {
-        board.cells[p.x - 1][p.y - 1].set_mine();
+        let row_i = p.x - 1;
+        let col_i = p.y - 1;
+        board.cells[row_i][col_i].set_mine();
+        // let xrange = std::cmp::max(row_i - 1, 0)..=std::cmp::min(row_i + 1, SIZE - 1);
+        // println!("{:?}", xrange);
+        // for x in xrange {
+        //     let yrange = std::cmp::max(col_i - 1, 0)..=std::cmp::min(col_i + 1, SIZE - 1);
+        //     println!("{:?}", yrange);
+        //     for y in yrange {
+        //         println!("{} {}", x, y);
+        //     }
+        // }
+        // panic!("test");
     }
 }
-
 impl Board {
     // MINEの場所一覧を作成
-
     pub fn new() -> Board {
         let mut board = Board {
             cells: Vec::from([0; SIZE].map(|_| Board::row())),
@@ -102,8 +122,10 @@ impl Board {
             println!("");
         }
     }
-
+    pub fn get_cell(&mut self, point: &Point) -> &mut Cell {
+        &mut self.cells[point.x - 1][point.y - 1]
+    }
     pub fn open_cell(&mut self, point: &Point) -> OpenCellResult {
-        self.cells[point.x - 1][point.y - 1].open()
+        self.get_cell(point).open()
     }
 }
