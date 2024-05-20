@@ -1,9 +1,19 @@
 use core::panic;
 use std::isize::MIN;
 
+use super::point;
 use crate::model::point::Point;
 use crate::setting::{MINE_COUNT, SIZE};
 use rand::Rng;
+
+const DEBUG_MODE_KEY: &str = "DEBUG_MODE";
+fn is_debug_mode() -> bool {
+    let debug_mode = std::env::var(DEBUG_MODE_KEY);
+    match debug_mode {
+        Ok(value) => value == "true",
+        Err(_) => false,
+    }
+}
 
 #[derive(Debug)]
 pub struct Cell {
@@ -21,16 +31,29 @@ impl Cell {
         }
     }
     fn print(&self) {
-        match self.is_open {
-            false => print!("■"),
-            true => match self.is_mine {
-                true => print!("×"),
-                false => print!("□"),
-            },
+        match is_debug_mode() {
+            true => {
+                match self.is_mine {
+                    true => print!("×"),
+                    false => print!("{}", self.neighbor_mine_count),
+                }
+            }
+            false => {
+                match self.is_open {
+                    false => print!("■"),
+                    true => match self.is_mine {
+                        true => print!("×"),
+                        false => print!("{}", self.neighbor_mine_count),
+                    },
+                }
+            }
         }
     }
     fn set_mine(&mut self) {
         self.is_mine = true;
+    }
+    fn increment_neighbor_mine_count(&mut self) {
+        self.neighbor_mine_count = self.neighbor_mine_count + 1;
     }
     fn open(&mut self) -> OpenCellResult {
         let res: OpenCellResult;
@@ -76,38 +99,28 @@ fn mine_positions() -> Vec<Point> {
 fn set_mines(board: &mut Board) {
     let positions = mine_positions();
     println!("mine positions {:#?}", positions);
-    // ex)
-    //    point          (1, 5)
-    // => cell index     (0, 4)
-    // => neighbor cells x       x       x
-    //                   (0, 3), (0, 4), (0, 5)
-    //                   (1, 3), (1, 4), (1, 5)
+
+    // 周辺の爆弾数をセットする
     for p in positions {
-        let row_i = p.x - 1;
-        let col_i = p.y - 1;
-        board.cells[row_i][col_i].set_mine();
-        // let xrange = std::cmp::max(row_i - 1, 0)..=std::cmp::min(row_i + 1, SIZE - 1);
-        // println!("{:?}", xrange);
-        // for x in xrange {
-        //     let yrange = std::cmp::max(col_i - 1, 0)..=std::cmp::min(col_i + 1, SIZE - 1);
-        //     println!("{:?}", yrange);
-        //     for y in yrange {
-        //         println!("{} {}", x, y);
-        //     }
-        // }
-        // panic!("test");
+        board.get_cell(&p).set_mine();
+        for np in board.get_neighbor_cells(&p) {
+            board.get_cell(&np).increment_neighbor_mine_count();
+        }
     }
 }
 impl Board {
     // MINEの場所一覧を作成
     pub fn new() -> Board {
         let mut board = Board {
-            cells: Vec::from([0; SIZE].map(|_| Board::row())),
+            cells: Board::new_cells(),
         };
         set_mines(&mut board);
         board
     }
-    fn row() -> Vec<Cell> {
+    fn new_cells() -> Vec<Vec<Cell>> {
+        Vec::from([0; SIZE].map(|_| Board::new_row()))
+    }
+    fn new_row() -> Vec<Cell> {
         Vec::from([0; SIZE].map(|_| Cell::new()))
     }
     fn print_row(row: &Vec<Cell>) {
@@ -122,9 +135,30 @@ impl Board {
             println!("");
         }
     }
+
     pub fn get_cell(&mut self, point: &Point) -> &mut Cell {
         &mut self.cells[point.x - 1][point.y - 1]
     }
+
+    pub fn in_board(point: &Point) -> bool {
+        let board_range = 1..=SIZE;
+        board_range.contains(&point.x) & board_range.contains(&point.y)
+    }
+
+    pub fn get_neighbor_cells(&mut self, point: &Point) -> Vec<Point> {
+        let mut neighbors: Vec<Point> = vec![];
+
+        for x in (point.x - 1)..=(point.x + 1) {
+            for y in (point.y - 1)..=(point.y + 1) {
+                let p = Point { x, y };
+                if Board::in_board(&p) {
+                    neighbors.push(p);
+                }
+            }
+        }
+        neighbors
+    }
+
     pub fn open_cell(&mut self, point: &Point) -> OpenCellResult {
         self.get_cell(point).open()
     }
